@@ -1,14 +1,15 @@
 import React from 'react';
-import firebase from 'firebase';
+import {initializeApp} from 'firebase/app';
 import withFirebaseAuth, {
   WrappedComponentProps,
 } from 'react-with-firebase-auth';
 import firebaseConfig from './firebaseConfig';
 import UserForm from './UserForm';
+import { GoogleAuthProvider, OAuthProvider, getAuth } from 'firebase/auth';
+import { Props } from './Props';
+const firebaseApp = initializeApp(firebaseConfig);
 
-const firebaseApp = firebase.initializeApp(firebaseConfig);
-
-const FormWrapper: React.FC = ({ children }) => (
+const FormWrapper: React.FC<Props> = ({ children }) => (
   <>
     <div style={{ marginLeft: '1.34em' }}>{children}</div>
     <hr />
@@ -111,11 +112,11 @@ const App: React.FC<WrappedComponentProps> = ({
   </React.Fragment>
 );
 
-const firebaseAppAuth = firebaseApp.auth();
+const firebaseAppAuth = getAuth(firebaseApp);
 
 const providers = {
-  googleProvider: new firebase.auth.GoogleAuthProvider(),
-  appleProvider: new firebase.auth.OAuthProvider('apple.com'),
+  googleProvider: new GoogleAuthProvider(),
+  appleProvider: new OAuthProvider('apple.com'),
 };
 
 export default withFirebaseAuth({

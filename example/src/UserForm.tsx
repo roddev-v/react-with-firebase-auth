@@ -4,8 +4,9 @@ import React, {
   InputHTMLAttributes,
   useState,
 } from 'react';
+import { Props } from './Props';
 
-const Field: React.FC = ({ children }) => (
+const Field: React.FC<Props> = ({ children }) => (
   <>
     {children}
     <br />
@@ -49,15 +50,19 @@ const UserForm = ({ onSubmit }: UserFormProps) => {
   return (
     <React.Fragment>
       <Field>
-        email: <Input value={email} onChange={setEmail} />
+       <>
+       email: <Input value={email} onChange={setEmail} />
+       </>
       </Field>
       <Field>
+        <>
         password:{' '}
         <Input
           value={password}
           onChange={setPassword}
           type="password"
         />
+        </>
       </Field>
       <SubmitButton onClick={() => onSubmit(email, password)} />
     </React.Fragment>

@@ -1,5 +1,23 @@
 import React from 'react';
-import firebase from 'firebase';
+import firebase, {
+  Auth,
+  ConfirmationResult,
+  createUserWithEmailAndPassword,
+  signInAnonymously,
+  signInWithEmailAndPassword,
+  signInWithPhoneNumber,
+  signInWithPopup,
+  signOut,
+  UserCredential,
+} from 'firebase/auth';
+import {
+  GoogleAuthProvider,
+  FacebookAuthProvider,
+  TwitterAuthProvider,
+  GithubAuthProvider,
+  OAuthProvider,
+  ApplicationVerifier,
+} from 'firebase/auth';
 
 import getErrorMessageForProvider from './getErrorMessageForProvider';
 
@@ -13,7 +31,7 @@ export type WrappedComponentProps = {
   signInWithApple: () => void;
   signInWithPhoneNumber: (
     phoneNumber: string,
-    applicationVerifier: firebase.auth.ApplicationVerifier
+    applicationVerifier: ApplicationVerifier
   ) => void;
   signInAnonymously: () => void;
   signOut: () => void;
@@ -26,15 +44,15 @@ export type WrappedComponentProps = {
 export type PossibleProviders = keyof ProvidersMapper;
 
 export type ProvidersMapper = {
-  googleProvider?: firebase.auth.GoogleAuthProvider_Instance;
-  facebookProvider?: firebase.auth.FacebookAuthProvider_Instance;
-  twitterProvider?: firebase.auth.TwitterAuthProvider_Instance;
-  githubProvider?: firebase.auth.GithubAuthProvider_Instance;
-  appleProvider?: firebase.auth.OAuthProvider;
+  googleProvider?: GoogleAuthProvider;
+  facebookProvider?: FacebookAuthProvider;
+  twitterProvider?: TwitterAuthProvider;
+  githubProvider?: GithubAuthProvider;
+  appleProvider?: OAuthProvider;
 };
 
 export type HocParameters = {
-  firebaseAppAuth: firebase.auth.Auth;
+  firebaseAppAuth: Auth;
   providers?: ProvidersMapper;
 };
 
@@ -88,34 +106,33 @@ const withFirebaseAuth = ({
       async tryTo<T>(operation: () => Promise<T>) {
         try {
           this.toggleLoading();
-          const result = await operation();
-          return result;
-        } catch (error) {
+          return await operation();
+        } catch (error: any) {
           this.setError(error.message);
-          return error as firebase.auth.Error;
+          return error as Error;
         } finally {
           this.toggleLoading();
         }
       }
 
       tryToSignInWithProvider = (provider: PossibleProviders) =>
-        this.tryTo<firebase.auth.UserCredential>(() => {
+        this.tryTo<UserCredential>(() => {
           const providerInstance = providers[provider];
 
           if (!providerInstance) {
             throw new Error(getErrorMessageForProvider(provider));
           }
 
-          return firebaseAppAuth.signInWithPopup(providerInstance);
+          return signInWithPopup(firebaseAppAuth, providerInstance);
         });
 
       signOut = () => {
-        return this.tryTo<void>(() => firebaseAppAuth.signOut());
+        return this.tryTo<void>(() => signOut(firebaseAppAuth));
       };
 
       signInAnonymously = () => {
-        return this.tryTo<firebase.auth.UserCredential>(() =>
-          firebaseAppAuth.signInAnonymously()
+        return this.tryTo<UserCredential>(() =>
+          signInAnonymously(firebaseAppAuth)
         );
       };
 
@@ -131,17 +148,18 @@ const withFirebaseAuth = ({
       signInWithApple = () => this.tryToSignInWithProvider('appleProvider');
 
       signInWithEmailAndPassword = (email: string, password: string) => {
-        return this.tryTo<firebase.auth.UserCredential>(() =>
-          firebaseAppAuth.signInWithEmailAndPassword(email, password)
+        return this.tryTo<UserCredential>(() =>
+          signInWithEmailAndPassword(firebaseAppAuth, email, password)
         );
       };
 
       signInWithPhoneNumber = (
         phoneNumber: string,
-        applicationVerifier: firebase.auth.ApplicationVerifier
+        applicationVerifier: ApplicationVerifier
       ) => {
-        return this.tryTo<firebase.auth.ConfirmationResult>(() =>
-          firebaseAppAuth.signInWithPhoneNumber(
+        return this.tryTo<ConfirmationResult>(() =>
+          signInWithPhoneNumber(
+            firebaseAppAuth,
             phoneNumber,
             applicationVerifier
           )
@@ -149,8 +167,8 @@ const withFirebaseAuth = ({
       };
 
       createUserWithEmailAndPassword = (email: string, password: string) => {
-        return this.tryTo<firebase.auth.UserCredential>(() =>
-          firebaseAppAuth.createUserWithEmailAndPassword(email, password)
+        return this.tryTo<UserCredential>(() =>
+          createUserWithEmailAndPassword(firebaseAppAuth, email, password)
         );
       };
 
